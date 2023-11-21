@@ -7,59 +7,123 @@ const { Videogame, Genres } = require("../db");
 
 router.get("/videogames", async (req, res) => {
   try {
+    const platformsSet = new Set()
     const { name } = req.query;
-    const resp = await axios.get(
-      `https://api.rawg.io/api/games?key=${API_KEY}`
-    );
-    const { data } = resp;
-    const filteredVideogames = data.results.map((games) => {
+    let page = 1;
+    let bunchGames = [];
+    while (page < 6) {
+      const resp = await axios.get(
+        `https://api.rawg.io/api/games?key=${API_KEY}&page=${page}`
+      );
+      const aux = resp.data.results;
+      const filteredVideogames = aux.map((games) => {
+        const platforms = games.platforms.map((p) => p.platform.name);
+        const genres = games.genres.map((g) => g.name);
+        return {
+          id: games.id,
+          name: games.name,
+          description: games.description,
+          platforms: platforms,
+          image: games.background_image,
+          date: games.released,
+          rating: games.rating,
+          genres: genres,
+        };
+      });
+      filteredVideogames.forEach((game) => {
+        bunchGames.push(game);
+
+      });
+      page++;
+    }
+
+    const videogamesBDD = await Videogame.findAll({
+      include: {
+        model: Genres,
+        attributes: ["name"],
+        through: {
+          attributes: [],
+        },
+      },
+    });
+    const handdlerBDD = videogamesBDD.map((game) => {
       return {
-        name: games.name,
-        platform: games.platforms.map((p) => p.platform.name),
-        image: games.background_image,
-        date: games.released,
-        rating: games.rating,
+        id: game.id,
+        name: game.name,
+        description: game.description,
+        platforms: game.platform,
+        image: game.image,
+        date: game.date,
+        rating: game.rating,
+        genres: game.genres.map((genre) => genre.name),
       };
     });
+    bunchGames = [...handdlerBDD, ...bunchGames];
     if (name) {
-      const games = filteredVideogames.filter((game) =>
+      const filterName = bunchGames.filter((game) =>
         game.name.toLowerCase().includes(name.toLowerCase())
       );
-      if (games.length === 0) {
-        return res.status(404).json({ error: "Game not found" });
-      }
-      return res.status(200).json(games);
-    } else {
-      return res.status(200).json(filteredVideogames);
+      return res.status(200).json(filterName);
     }
+    return res.status(200).json(bunchGames);
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
 router.get("/videogames/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const resp = await axios.get(
-      `https://api.rawg.io/api/games?key=${API_KEY}`
-    );
-    const info = resp.data.results;
-
-    const filterVideogames = info.map((game) => {
+    let page = 1;
+    let bunchGames = [];
+    while (page < 6) {
+      const resp = await axios.get(
+        `https://api.rawg.io/api/games?key=${API_KEY}&page=${page}`
+      );
+      const aux = resp.data.results;
+      const filteredVideogames = aux.map((games) => {
+        const platforms = games.platforms.map((p) => p.platform.name);
+        const genres = games.genres.map((g) => g.name);
+        return {
+          id: games.id,
+          name: games.name,
+          description: games.description,
+          platforms: platforms,
+          image: games.background_image,
+          date: games.released,
+          rating: games.rating,
+          genres: genres,
+        };
+      });
+      filteredVideogames.forEach((game) => {
+        bunchGames.push(game);
+      });
+      page++;
+    }
+    // console.log(bunchGames.length);
+    const videogamesBDD = await Videogame.findAll({
+      include: {
+        model: Genres,
+        attributes: ["name"],
+        through: {
+          attributes: [],
+        },
+      },
+    });
+    const handdlerBDD = videogamesBDD.map((game) => {
       return {
         id: game.id,
         name: game.name,
         description: game.description,
-        platforms: game.platforms.map((p) => p.platform.name),
-        image: game.background_image,
-        date: game.released,
+        platforms: game.platform,
+        image: game.image,
+        date: game.date,
         rating: game.rating,
-        genres: game.genres.map((g) => g.name),
+        genres: game.genres.map((genre) => genre.name),
       };
     });
-
-    const findTheGame = filterVideogames.find((game) => game.id === id);
-
+    bunchGames = [...handdlerBDD, ...bunchGames];
+    const findTheGame = bunchGames.find((game) => game.id == id);
     if (!findTheGame) {
       return res.status(404).json({ error: "Game not found" });
     }
@@ -71,24 +135,33 @@ router.get("/videogames/:id", async (req, res) => {
 
 router.get("/genres", async (req, res) => {
   try {
-    const resp = await axios.get(`https://api.rawg.io/api/games?key=${API_KEY}`);
+    const resp = await axios.get(
+      `https://api.rawg.io/api/genres?key=${API_KEY}`
+    );
     const data = resp.data.results;
+
     const listGenres = new Set();
 
     if (data) {
-      const vgGenres = data.map((game) => game.genres.map((g) => g.name));
-      vgGenres.forEach((genre) => genre.forEach((g) => listGenres.add(g)));
+      const vgGenres = data.map((genre) => genre.name);
+      vgGenres.forEach((genre) => {
+        listGenres.add(genre);
+      });
+
       const listUnitGenres = Array.from(listGenres);
 
-      await Promise.all(listUnitGenres.map(async (d) => {
-        await Genres.findOrCreate({ where: { name: d } });
-      }));
+      await Promise.all(
+        listUnitGenres.map(async (d) => {
+          await Genres.findOrCreate({ where: { name: d } });
+        })
+      );
       res.status(200).json(listUnitGenres);
     }
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
+
 router.post("/videogames", async (req, res) => {
   try {
     const body = req.body;
@@ -100,9 +173,8 @@ router.post("/videogames", async (req, res) => {
       date: body.date,
       rating: body.rating,
     });
-    
-     const spreads = [...body.genres];
-      console.log(spreads);
+
+    const spreads = [...body.genres];
     let tableGenres = await Genres.findAll({
       where: { name: spreads },
     });

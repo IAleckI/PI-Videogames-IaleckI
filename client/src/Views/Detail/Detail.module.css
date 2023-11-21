@@ -1,0 +1,31 @@
+.detail {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    background-color: white;
+    color: black;
+    transition: background-color 0.35s ease;
+    background-image: black;
+  }
+
+  .detail .img {
+   width: 120px;
+   height: 140px;
+   background: #ccc;
+   border-radius: 15px;
+   object-fit: cover;
+   margin: auto;
+   margin-top: 25px;
+  }
+
+  /* .detail:hover {
+    background-color: rgb(209, 40, 209); 
+    background-color: right top;
+  }
+  
+  .detail:hover .img {
+    transform: scale(1.2); 
+  }
+   */
