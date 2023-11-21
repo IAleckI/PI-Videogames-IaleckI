@@ -54,16 +54,19 @@ export const ValidateDate = (e) => {
 };
 
 export const ValidateRating = (e) => {
-  if (e.rating < 1 || e.rating > 5) return "Rango entre 1 y 5";
+  if (!e.rating) return "El rating es obligatorio";
+  if (e.rating < 1 || e.rating > 5) return "El rating debe estar entre  entre 1 y 5";
   else return;
 };
 export const ValidatePlatform = (e) => {
-  if (e.platform.length === 0) return "Este campo es obligatorio";
+console.log(e.platform);
+  if (e.platform.length === 0) return "Debes seleccionar al menos una plataforma";
+  else if (e.platform.length > 7 ) return "No se permiten mas de 6 plataformas";
   else return;
 };
 
 export const ValidateGenres = (e) => {
   if (e.genres.length === 0) return "Este campo es obligatorio";
-  else if (e.genres.length > 6) return "No se permiten mas de 6 generos";
+  else if (e.genres.length >4) return "No se permiten mas de 6 generos";
   else return;
 };

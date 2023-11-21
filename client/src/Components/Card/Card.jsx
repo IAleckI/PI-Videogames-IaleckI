@@ -1,18 +1,24 @@
-import React from 'react'
-import Style from './Card.module.css'
-import imgNotFound from '../../imgs/notFound.jpg'
-import { Link } from 'react-router-dom'
+import React from "react";
+import Style from "./Card.module.css";
+import imgNotFound from "../../imgs/notFound.jpg";
+import { Link } from "react-router-dom";
 
-const Card = ( { id, name, image }) => {
+const Card = ({ id, name, image,genres }) => {
   return (
-    <div  className={Style.card}>
+    <div className={Style.card}>
       <Link to={`/home/${id}`}>
-        <img className={Style.img}  src={image} id={id} alt={name} onError={(e) => e.currentTarget.src = imgNotFound}/>
+        <img
+          className={Style.img}
+          src={image}
+          id={id}
+          alt={name}
+          onError={(e) => (e.currentTarget.src = imgNotFound)}
+        />
       </Link>
       <span>{name}</span>
-      
+      <span>{genres}</span>
     </div>
-  )
-}
+  );
+};
 
-export default Card
+export default Card;

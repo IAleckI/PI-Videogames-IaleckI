@@ -8,8 +8,17 @@ const Cards = ({ catchGames }) => {
       {catchGames.map((game) => (
         <Card 
         key={game.id} 
-        id={game.id} 
+        id={game.id}
         name={game.name} 
+        genres={Array.isArray(game.genres) && game.genres.length > 0 ? (
+          <ul>
+            {game.genres.map((g, i) => (
+              <li key={i}>{g}</li>
+            ))}
+          </ul>
+        ) : (
+          <span>No genres available</span>
+        )}
         image={game.image} 
         />
       ))}

@@ -31,6 +31,8 @@ const Detail = () => {
       />
       <ul>
         <li> {catchDetail.description}</li>
+        <li> {catchDetail.date}</li>
+        
         {Array.isArray(catchDetail.platforms) ? (
           <ul>
             {catchDetail.platforms.map((platform, index) => (

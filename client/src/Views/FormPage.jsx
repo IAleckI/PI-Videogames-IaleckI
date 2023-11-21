@@ -14,6 +14,15 @@ import {
 } from "../Components/Validations/Validations";
 
 const FormPage = () => {
+  const [errors, setErrors] = useState({
+    name: "",
+    image: "",
+    platform: "",
+    description: "",
+    rating: "",
+    date: "",
+    genres: "",
+  });
   const [newGame, setNewGame] = useState({
     name: "",
     image: "",
@@ -33,14 +42,33 @@ const FormPage = () => {
   }, []);
 
   const handlerChange = (event) => {
+    event.preventDefault();
     const name = event.target.name;
     const value = event.target.value;
-
-    setNewGame({
-      ...newGame,
-      [name]: value,
-      error,
-    });
+    switch (name) {
+      case "name":
+        errors.name = ValidateGameName({ name: value });
+        break;
+      case "image":
+        errors.image = ValidateGameIMG({ image: value });
+        break;
+      case "description":
+        errors.description = ValidateGameDescription({ description: value });
+        break;
+      case "date":
+        errors.date = ValidateDate({ date: value });
+        break;
+      case "rating":
+        errors.rating = ValidateRating({ rating: value });
+        break;
+      default:
+        break;
+    }
+    setErrors(errors);
+    setNewGame((prevState) => ({
+      ...prevState,
+      [event.target.name]: event.target.value,
+    }));
   };
 
   const handlerSubmmit = async (event) => {
@@ -60,36 +88,86 @@ const FormPage = () => {
   const handlerArray = (e, target) => {
     const options = e.target.options;
     const selected = [];
+
     for (let i = 0; i < options.length; i++) {
       if (options[i].selected && !newGame[target].includes(options[i].value)) {
         selected.push(options[i].value);
       }
     }
+
+    const updatedGame = {
+      ...newGame,
+      [target]: [...newGame[target], ...selected],
+    };
+
+    setNewGame(updatedGame);
+
+    let updatedErrors = { ...errors };
+
+    switch (target) {
+      case "platform":
+        updatedErrors.platform = ValidatePlatform({
+          platform: [...updatedGame.platform],
+        });
+        break;
+      case "genres":
+        updatedErrors.genres = ValidateGenres({
+          genres: [...updatedGame.genres],
+        });
+        break;
+      default:
+        break;
+    }
+    setErrors(updatedErrors);
+  };
+
+  /* -------------------------------------------------------------------------- */
+
+  const handlerDelete = (target, values) => {
     setNewGame((prevState) => ({
       ...prevState,
-      [target]: [...prevState[target], ...selected],
+      [target]: prevState[target].filter((val) => !values.includes(val)),
     }));
+
+    let updatedErrors = { ...errors };
+
+    switch (target) {
+      case "platform":
+        updatedErrors.platform = ValidatePlatform({
+          platform: newGame.platform.filter((val) => !values.includes(val)),
+        });
+        break;
+      case "genres":
+        updatedErrors.genres = ValidateGenres({
+          genres: newGame.genres.filter((val) => !values.includes(val)),
+        });
+        break;
+      default:
+        break;
+    }
+    setErrors(updatedErrors);
   };
+  /* -------------------------------------------------------------------------- */
 
   const allPlatforms = Array.from(
     new Set(catchGames.map((game) => game.platforms).flat())
   );
-  if (!catchGenres && !catchGames) {
+  if (!catchGenres && !catchGames && !newGame) {
     return <h1>Loading...</h1>;
     console.log("cargando");
   }
   return (
     <div>
       <form>
-        <label>
-          Videogame Name:
-          <input type="text" name="name" id="name" onChange={handlerChange} />
-        </label>
+        <label>Videogame Name:</label>
+
+        <input type="text" name="name" id="name" onChange={handlerChange} />
+        {errors.name && <p>{errors.name}</p>}
         <hr />
-        <label>
-          Videogame Image:
-          <input type="text" name="image" id="image" onChange={handlerChange} />
-        </label>
+        <label>Videogame Image:</label>
+
+        <input type="text" name="image" id="image" onChange={handlerChange} />
+        {errors.image && <p>{errors.image}</p>}
         <hr />
         <label> Videogame Platform:</label>
         <select
@@ -104,23 +182,32 @@ const FormPage = () => {
             </option>
           ))}
         </select>
+        {errors.platform && <p>{errors.platform}</p>}
+        {newGame.platform.map((platform, index) => (
+          <div key={index}>
+            <span>{platform}</span>
+            <button onClick={() => handlerDelete("platform", [platform])}>
+              Delete
+            </button>
+          </div>
+        ))}
         <hr />
-        <label>
-          Videogame Description:
-          <input
-            type="text"
-            name="description"
-            id="description"
-            onChange={handlerChange}
-          />
-        </label>
+        <label>Videogame Description: </label>
+
+        <input
+          type="text"
+          name="description"
+          id="description"
+          onChange={handlerChange}
+        />
+        {errors.description && <p>{errors.description}</p>}
         <hr />
-        <label>
-          Date of Release:
-          <time>
-            <input type="date" name="date" id="date" onChange={handlerChange} />
-          </time>
-        </label>
+        <label>Date of Release:</label>
+
+        <time>
+          <input type="date" name="date" id="date" onChange={handlerChange} />
+        </time>
+        {errors.date && <p>{errors.date}</p>}
         <hr />
 
         <label>Puntuación del juego (del 1 al 5):</label>
@@ -134,6 +221,7 @@ const FormPage = () => {
           required
           onChange={handlerChange}
         />
+        {errors.rating && <p>{errors.rating}</p>}
         <hr />
         <label> generos: </label>
         <select
@@ -148,9 +236,39 @@ const FormPage = () => {
             </option>
           ))}
         </select>
+        {newGame.genres.map((genre, index) => (
+          <div key={index}>
+            <span>{genre}</span>
+            <button onClick={() => handlerDelete("genres", [genre])}>
+              Delete
+            </button>
+          </div>
+        ))}
+        {errors.genres && <p>{errors.genres}</p>}
 
         <hr />
-        <input type="submit" value="Submit" onClick={handlerSubmmit} />
+
+        <input
+          type="submit"
+          value="Submit"
+          disabled={
+            errors.name ||
+            errors.image ||
+            errors.description ||
+            errors.date ||
+            errors.rating ||
+            errors.platform ||
+            errors.genres ||
+            !newGame.name ||
+            !newGame.image ||
+            !newGame.description ||
+            !newGame.date ||
+            !newGame.rating ||
+            !newGame.platform ||
+            !newGame.genres
+          }
+          onClick={handlerSubmmit}
+        />
       </form>
     </div>
   );
