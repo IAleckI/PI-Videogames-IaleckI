@@ -15,7 +15,7 @@ const Card = ({ id, name, image,genres }) => {
           onError={(e) => (e.currentTarget.src = imgNotFound)}
         />
       </Link>
-      <span>{name}</span>
+      <h2><span>{name}</span></h2>
       <span>{genres}</span>
     </div>
   );

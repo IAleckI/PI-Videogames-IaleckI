@@ -7,7 +7,7 @@ const { Videogame, Genres } = require("../db");
 
 router.get("/videogames", async (req, res) => {
   try {
-    const platformsSet = new Set()
+    const platformsSet = new Set();
     const { name } = req.query;
     let page = 1;
     let bunchGames = [];
@@ -32,7 +32,6 @@ router.get("/videogames", async (req, res) => {
       });
       filteredVideogames.forEach((game) => {
         bunchGames.push(game);
-
       });
       page++;
     }
@@ -164,17 +163,24 @@ router.get("/genres", async (req, res) => {
 
 router.post("/videogames", async (req, res) => {
   try {
-    const body = req.body;
+    const { name, description, platform, image, date, rating, genres } =
+      req.body;
+    const existingGame = await Videogame.findOne({ where: { name } });
+    if (existingGame) {
+      return res
+        .status(400)
+        .json({ error: "the name of the game already exists" });
+    }
     const newGame = await Videogame.create({
-      name: body.name,
-      description: body.description,
-      platform: body.platform,
-      image: body.image,
-      date: body.date,
-      rating: body.rating,
+      name,
+      description,
+      platform,
+      image,
+      date,
+      rating,
     });
 
-    const spreads = [...body.genres];
+    const spreads = [...genres];
     let tableGenres = await Genres.findAll({
       where: { name: spreads },
     });

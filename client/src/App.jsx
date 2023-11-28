@@ -8,8 +8,6 @@ import Detail from './Views/Detail/Detail';
 
 function App() {
 
-
-
   return (
     <div className="App">
       <Routes>

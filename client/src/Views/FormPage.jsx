@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getGenres, getVideogames } from "../Redux/Actions";
-import Select from "react-select";
 import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import {
   ValidateGameName,
@@ -28,7 +28,7 @@ const FormPage = () => {
     image: "",
     platform: [],
     description: "",
-    rating: 0,
+    rating: null,
     date: "",
     genres: [],
   });
@@ -61,6 +61,12 @@ const FormPage = () => {
       case "rating":
         errors.rating = ValidateRating({ rating: value });
         break;
+      case "platform":
+        errors.platform = ValidatePlatform({ platform: value });
+        break;
+      case "genres":
+        errors.genres = ValidateGenres({ genres: value });
+        break;
       default:
         break;
     }
@@ -75,13 +81,17 @@ const FormPage = () => {
     event.preventDefault();
     try {
       const res = await axios.post("http://localhost:3001/videogames", newGame);
-
+  
       if (res.status === 201) {
         alert("Videogame created successfully");
+        window.location.href = "/home";
       }
     } catch (error) {
-      console.log(res.state);
-      alert("Error creating videogame");
+      if (error.response && error.response.data && error.response.data.error) {
+        alert("Error when creating the videogame. this may be due to: ERROR:" + error.response.data.error);
+      } else {
+        alert("Error creating videogame. Please try again later.");
+      }
     }
   };
 
@@ -187,14 +197,14 @@ const FormPage = () => {
           <div key={index}>
             <span>{platform}</span>
             <button onClick={() => handlerDelete("platform", [platform])}>
-              Delete
+              x
             </button>
           </div>
         ))}
         <hr />
         <label>Videogame Description: </label>
 
-        <input
+        <textarea
           type="text"
           name="description"
           id="description"
@@ -208,20 +218,6 @@ const FormPage = () => {
           <input type="date" name="date" id="date" onChange={handlerChange} />
         </time>
         {errors.date && <p>{errors.date}</p>}
-        <hr />
-
-        <label>Puntuación del juego (del 1 al 5):</label>
-        <input
-          type="number"
-          id="rating"
-          name="rating"
-          min="1.0"
-          max="5.0"
-          step="0.1"
-          required
-          onChange={handlerChange}
-        />
-        {errors.rating && <p>{errors.rating}</p>}
         <hr />
         <label> generos: </label>
         <select
@@ -239,13 +235,23 @@ const FormPage = () => {
         {newGame.genres.map((genre, index) => (
           <div key={index}>
             <span>{genre}</span>
-            <button onClick={() => handlerDelete("genres", [genre])}>
-              Delete
-            </button>
+            <button onClick={() => handlerDelete("genres", [genre])}>x</button>
           </div>
         ))}
         {errors.genres && <p>{errors.genres}</p>}
-
+        <hr />
+        <label>Puntuación del juego (del 1 al 5):</label>
+        <input
+          type="number"
+          id="rating"
+          name="rating"
+          min="1.0"
+          max="5.0"
+          step="0.1"
+          required
+          onChange={handlerChange}
+        />
+        {errors.rating && <p>{errors.rating}</p>}
         <hr />
 
         <input
@@ -269,6 +275,10 @@ const FormPage = () => {
           }
           onClick={handlerSubmmit}
         />
+
+        <Link to="/home">
+          <button>Go to Home</button>
+        </Link>
       </form>
     </div>
   );

@@ -1,6 +1,6 @@
 .card {
     border: 1px solid #ccc;
-    border-radius: 8px;
+    border-radius: 16px;
     padding: 16px;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
@@ -10,7 +10,7 @@
     background-image: radial-gradient(circle at center,
      rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 80%), 
     linear-gradient(to bottom right, rgba(173, 127, 168, 0.7), 
-    rgba(173, 127, 168, 0.5) 50%, gold 50%, gold);
+    rgba(173, 127, 168, 0.5) 50%, rgb(0, 253, 8) 50%, rgb(0, 253, 8));
   }
 
 
