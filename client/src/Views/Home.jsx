@@ -12,28 +12,26 @@ import {
 import Select from "react-select";
 import Cards from "../Components/Cards/Cards";
 import SearchBar from "../Components/SearchBar/SearchBar";
+
 const Home = () => {
   /* --------------------------------- states --------------------------------- */
   const [API, setAPI] = useState(false);
   const [DB, setDB] = useState(false);
-  const filterGenres = useSelector((state) => state.filterByGenres);
+  const [selectedGenres, setSelectedGenres] = useState([]);
   const catchGames = useSelector((state) => state.getVideogames);
   const catchGenres = useSelector((state) => state.getGenres);
   const sortOrder = useSelector((state) => state.sortedGamesOrder);
   const ratingOrder = useSelector((state) => state.sortedRatingOrder);
   const catchDBGames = useSelector((state) => state.getDBVideogames);
   const catchAPIGames = useSelector((state) => state.getAPIVideogames);
+
+
   const dispatch = useDispatch();
-  const [savedOptions, setSavedOptions] = useState({
-    genres: [],
-  });
 
   useEffect(() => {
     dispatch(getVideogames());
     dispatch(getGenres());
-  }, [dispatch]);
-
-  /* ----------------------------- handler filterByGenres ----------------------------- */
+  }, []);
 
   /* --------------------------- handlers db and api and all-------------------------- */
 
@@ -54,100 +52,79 @@ const Home = () => {
     setCurrentPage(1);
   };
 
-  /* ------------------------------ useEffects as DB/API/CATCHGAMES ------------------------------ */
-  useEffect(() => {
-    if (DB) {
-      dispatch(getDBVideogames());
-    }
-    if (API) {
-      dispatch(getAPIVideogames());
-    }
-    if (!DB && !API) {
+  /* ------------------------------ handlerArrayFilterByGenres ------------------------------ */
+  const handlerArray = async (selectedOptions) => {
+    let selectedGenres = selectedOptions.map((option) => option.value);
+    setSelectedGenres(selectedGenres);
+
+    dispatch(filterByGenres(selectedGenres));
+    
+    if (selectedGenres.length === 0) {
       dispatch(getVideogames());
     }
-  }, [DB, API]);
-
-  /* ------------------------------ handlerArray ------------------------------ */
-  const handlerArray = (selectedOptions, { name }) => {
-    const options = selectedOptions.map((option) => option.value);
-
-    const filtered = catchGames.filter((game) => {
-      return options.some((option) => game.genres.includes(option));
-    });
+    setCurrentPage(1);
   };
 
-  /* -----------------------------OrderAscDescName---------------------------------- */
+    /* ------------------------------ useEffects as DB/API/CATCHGAMES ------------------------------ */
+    useEffect(() => {
+      if (DB) {
+        dispatch(getDBVideogames());
+      }
+      if (API) {
+        dispatch(getAPIVideogames());
+      }
+      if (!DB && !API) {
+        dispatch(getVideogames());
+      }
+    }, [DB, API]);
+  /* -----------------------------OrderAscDesNameRaiting---------------------------------- */
   const handleSortByName = () => {
-    if (DB) {
-      dispatch(getSortedNameGames(sortOrder === "asc" ? "desc" : "asc"));
-    } else if (API) {
-      dispatch(getSortedNameGames(sortOrder === "asc" ? "desc" : "asc"));
-    } else {
-      dispatch(getSortedNameGames(sortOrder === "asc" ? "desc" : "asc"));
-    }
+    dispatch(getSortedNameGames(sortOrder === "asc" ? "desc" : "asc"));
   };
 
-  /* -------------------------------OrderAscDescRating--------------------------------- */
   const handleSortByRating = () => {
-    if (DB) {
-      dispatch(getSortedByRating(ratingOrder === "asc" ? "desc" : "asc"));
-    } else if (API) {
-      dispatch(getSortedByRating(ratingOrder === "asc" ? "desc" : "asc"));
-    } else {
-      dispatch(getSortedByRating(ratingOrder === "asc" ? "desc" : "asc"));
-    }
+    dispatch(getSortedByRating(ratingOrder === "asc" ? "desc" : "asc"));
   };
-
   /* ------------------------------- Pagination ------------------------------- */
 
   const maxedGamesDysplayed = 15;
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   const totalCatchGames = catchGames.length;
   const totalAPIGames = catchAPIGames.length;
   const totalDBGames = catchDBGames.length;
-  const totalGGenres = filterGenres.length;
-  
+
   let totalDisplayedGames;
-  if (filterGenres.length > 0) {
-    totalDisplayedGames = totalGGenres;
-  } else if (API) {
+  if (API) {
     totalDisplayedGames = totalAPIGames;
   } else if (DB) {
     totalDisplayedGames = totalDBGames;
   } else {
     totalDisplayedGames = totalCatchGames;
   }
-  
+
   const totalPages = Math.ceil(totalDisplayedGames / maxedGamesDysplayed);
-  
+
   const startIndex = (currentPage - 1) * maxedGamesDysplayed;
   const endIndex = startIndex + maxedGamesDysplayed;
-  
+
   const goToPage = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
   };
-  
+
   const prevPage = () => {
     goToPage(currentPage - 1);
   };
-  
+
   const nextPage = () => {
     goToPage(currentPage + 1);
   };
-  
-  const displayedGames =
-    filterGenres.length > 0
-      ? filterGenres
-      : API
-      ? catchAPIGames
-      : DB
-      ? catchDBGames
-      : catchGames;
-  
-  const VideogamesShowed = displayedGames.slice(startIndex, endIndex);
+
+  let displayedGames = API ? catchAPIGames : DB ? catchDBGames : catchGames;
+
+  let VideogamesShowed = displayedGames.slice(startIndex, endIndex);
 
   /* --------------------------------Return------------------------------------------ */
   return (
@@ -171,16 +148,15 @@ const Home = () => {
         isMulti
         name="genres"
         options={
-          !catchGames.length
-            ? []
-            : catchGenres.map((genre) => ({
+          catchGenres && catchGenres.length > 0
+            ? catchGenres.map((genre) => ({
                 value: genre,
                 label: genre,
               }))
+            : []
         }
+        value={selectedGenres.map(genre => ({ value: genre, label: genre }))}
         onChange={handlerArray}
-        className="basic-multi-select"
-        classNamePrefix="select"
       />
       <hr />
       <button onClick={prevPage} disabled={currentPage === 1}>

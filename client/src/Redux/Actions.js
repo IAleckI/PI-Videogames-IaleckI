@@ -1,4 +1,3 @@
-import axios from "axios";
 export const GET_VIDEOGAMES = "GET_VIDEOGAMES";
 export const GET_DETAIL = "GET_DETAIL";
 export const GET_GENRES = "GET_GENRES";
@@ -33,10 +32,14 @@ export const getGenres = () => {
 
 export const getDetail = (id) => async (dispatch) => {
   try {
-    const res = await axios.get(`http://localhost:3001/videogames/${id}`);
-    return dispatch({ type: "GET_DETAIL", payload: res.data });
+    const res = await fetch(`http://localhost:3001/videogames/${id}`);
+    if (!res.ok) {
+      throw new Error("there is no detail for this id");
+    }
+    const data = await res.json();
+    dispatch({ type: "GET_DETAIL", payload: data });
   } catch (error) {
-    error.message = "No hay detalles que te podamos mostrar por el momento";
+    error.message = "there is not information by the moment";
   }
 };
 
@@ -152,16 +155,15 @@ export const filterByGenres = (genres) => {
       const { getVideogames, getDBVideogames, getAPIVideogames } = getState();
 
       const filteredGenres = getVideogames.filter((game) => {
-        return game.genres.some((genre) => genres.includes(genre));
+        return genres.every((genre) => game.genres.includes(genre));
       });
 
       const filteredDBGenres = getDBVideogames.filter((game) => {
-        return game.genres.some((genre) => genres.includes(genre));
+        return genres.every((genre) => game.genres.includes(genre));
       });
 
       const filteredAPIGenres = getAPIVideogames.filter((game) => {
-        console.log(game.genres, genres);
-        return game.genres.some((genre) => genres.includes(genre));
+        return genres.every((genre) => game.genres.includes(genre));
       });
 
       dispatch({

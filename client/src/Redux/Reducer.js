@@ -68,9 +68,10 @@ export default function rootReducer(state = initialState, action) {
       return {
         ...state,
         getVideogames: action.payload.getVideogames,
-        getDBVideogames: action.payload.getDBVideogames,
-        getAPIVideogames: action.payload.getAPIVideogames,
-        filterByGenres: action.payload.filterByGenres,
+        getDBVideogames:
+          action.payload.getDBVideogames,
+        getAPIVideogames:
+          action.payload.getAPIVideogames
       };
     default:
       return state;
